@@ -2,7 +2,7 @@
 # Thanks to msniveau for all the help with this
 
 # Setup our temp working directory
-WORKDIR=$(mkdir -d)
+WORKDIR=$(mktemp -d)
 
 # Download most latest 1.15.2 release of papermc
 wget -P $WORKDIR/ https://papermc.io/api/v1/paper/1.15.2/latest/download
