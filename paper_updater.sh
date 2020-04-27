@@ -5,7 +5,7 @@
 WORKDIR=$(mktemp -d)
 
 # Download most latest 1.15.2 release of papermc
-wget -P $WORKDIR/ https://papermc.io/api/v1/paper/1.15.2/latest/download
+wget -P --content-disposition $WORKDIR/ https://papermc.io/api/v1/paper/1.15.2/latest/download/
 
 # Identify the update file
 UPDATE_FILE=$(ls $WORKDIR/paper-*.jar)
