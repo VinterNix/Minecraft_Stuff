@@ -5,11 +5,11 @@
 WORKDIR=$(mktemp -d)
 
 # Download most latest 1.15.2 release of papermc
-wget -P --content-disposition $WORKDIR/ https://papermc.io/api/v1/paper/1.15.2/latest/download/
+wget -P $WORKDIR/ https://papermc.io/api/v1/paper/1.15.2/latest/download/ -O paperspigot.jar
 
 # Identify the update file
-UPDATE_FILE=$(ls $WORKDIR/paper-*.jar)
-[[ "$?" -gt 0 ]] && echo "paper-*.jar not found, exiting!" && exit 1
+UPDATE_FILE=$(ls $WORKDIR/paperspigot.jar)
+[[ "$?" -gt 0 ]] && echo "paperspigot.jar not found, exiting!" && exit 1
 
 # Fetch the new md5sum
 NEW_VERSION=$(md5sum $UPDATE_FILE | awk '{print $1}')
