@@ -1,59 +1,79 @@
 #!/bin/bash
 # Thanks to msniveau & George for all the help with this
-# Update Line 45 with your Server Directories
 
-# [George]
-LOG_FILE=/var/log/paper_updater.log
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# 
+# Update Line 11, 14 & 51 with your Server Directories
+# 
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# Create our temp workspace
-WORKDIR=/home/Updater_Work_DIR
+# Define our Log file's location
+LOG_FILE=/WHERE/YOU/KEEP/YOUR/LOGS/paper_updater.log
 
+# Define our Working Directory (No Trailing / )
+WORKDIR=/WHERE/ARE/WE/GOING/TO/WORK
+
+# TimeStamp for our Records
 echo "
 --------------------------------------------
 START TIME: 	$(date +%Y-%d-%m\ %H:%M:%S)
 --------------------------------------------
-1] Creating workdir if does not exist" | tee -a $LOG_FILE
+" | tee -a $LOG_FILE
 
-# create work dir if does not exist
+# Create Working Directory if it doesn't exist and go there
 if [ ! -d $WORKDIR ];then
-	echo "[!] WORKDIR created by script" | tee -a $LOG_FILE
+	echo "[!] WORKDIR Not found! Creating it..." | tee -a $LOG_FILE
 	mkdir $WORKDIR
 fi
-echo "2] going to $WORKDIR" | tee -a $LOG_FILE
+echo "1] Working Directory Found: $WORKDIR" | tee -a $LOG_FILE
 cd $WORKDIR
+echo "2] Moving into our Working Directory..." | tee -a $LOG_FILE
 
 
 # Download latest 1.15.2 release of papermc
-FILE_NAME="$(
-	curl -Isk 'https://papermc.io/api/v1/paper/1.15.2/latest/download' \
-		| grep 'content-disposition:' \
-		| sed 's/.*filename=//g'
-)"
-echo "3] Downloading 1.15.2 release [$FILE_NAME]" | tee -a $LOG_FILE
-wget -O $WORKDIR/paperspigot.jar https://papermc.io/api/v1/paper/1.15.2/latest/download
+FILE_NAME="$(curl -Is 'https://papermc.io/api/v1/paper/1.15.2/latest/download' | awk -F= '/filename/{print $NF}')"
+echo "3] Downloading PaperMC (Java 1.15.2) Release Version: $FILE_NAME" | tee -a $LOG_FILE
+ 
+	# Use wget to fetch our file...Doing it quietly and renaming the file
+	 wget --no-verbose -O $WORKDIR/paperspigot.jar https://papermc.io/api/v1/paper/1.15.2/latest/download
 
 # Identify the update file
 UPDATE_FILE=$(ls $WORKDIR/paperspigot.jar)
-echo "UPDATE_FILE=$UPDATE_FILE" | tee -a $LOG_FILE
-[[ "$?" -gt 0 ]] && echo "paperspigot.jar not found, exiting!" | tee -a $LOG_FILE && exit 1
+echo "4] Paper Downloaded and Renamed Sucessfully!" | tee -a $LOG_FILE
+[[ "$?" -gt 0 ]] && echo "paperspigot.jar Not Found! Exiting..." | tee -a $LOG_FILE && exit 1
 
 # Fetch the new md5sum
 NEW_VERSION=$(md5sum $UPDATE_FILE | awk '{print $1}')
-echo "NEW_VERSION=$NEW_VERSION" | tee -a $LOG_FILE
 
-# Now iterate over the servers, each server needs to check if an update is required
-for i in /INSERT/YOUR/SERVER/DIRECTORY/HERE/*WILDCARDS/ACCEPTED/; do
+# Compare md5sums to all servers and flag those needing updates
+echo "5] Checking All servers for updates...
+" | tee -a $LOG_FILE
+for i in /INSERT/YOUR/SERVER/DIRECTORY/HERE/*WILDCARDS/ACCEPTED/paperspigot.jar; do
     SERVER_DIR=$(dirname $i)
-    echo "SERVER_DIR=$SERVER_DIR" | tee -a $LOG_FILE
-    # Compare currently installed m5sum with the new one
+    echo "SERVER: $SERVER_DIR" | tee -a $LOG_FILE
+    # Compare currently installed md5sum with the new one
     [[ "$(md5sum $SERVER_DIR/paperspigot.jar | awk '{print $1}')" == "$NEW_VERSION" ]] && {
-    	echo "Server is already up to date...Finishing" | tee -a $LOG_FILE
+    	echo "No update is required...
+		" | tee -a $LOG_FILE
     	continue
     }
-    echo "$SERVER_DIR needs update!" | tee -a $LOG_FILE
-    sudo cp $UPDATE_FILE $SERVER_DIR/paperspigot.jar
-    chown pufferd:pufferd $SERVER_DIR/paperspigot.jar
+    echo "$SERVER_DIR Outdated! Running Update..." | tee -a $LOG_FILE
+    # Copy & Replace our updated Paper file
+	sudo cp $UPDATE_FILE $SERVER_DIR/paperspigot.jar
+    # Change ownership to pufferd daemon user and group
+	chown pufferd:pufferd $SERVER_DIR/paperspigot.jar
 done
 
 # Cleanup our workspace
 rm -rf $WORKDIR/paperspigot.jar
+
+echo "
+All Done! Cleaning up and Exiting..." | tee -a $LOG_FILE
+
+# Another TimeStamp for our Records
+echo "
+--------------------------------------------
+END TIME: 	$(date +%Y-%d-%m\ %H:%M:%S)
+--------------------------------------------
+" | tee -a $LOG_FILE
+
