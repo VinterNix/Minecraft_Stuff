@@ -3,4 +3,5 @@ Just a random collection of scripts we have developed and use in-house for runni
 
 
 # paper_updater.sh
-Got tired of manually downloading and uploading all the updates PaperMC releases in a day. So, together with a friend, we came up with a bash script that will do everything but restart the MC server for us. Our servers auto-restart at X intervals.
+Script for automating the downloading and updating of our PaperMC Minecraft servers.
+This script has been designed to work with our Puffer node system running (Java MC v1.15.2), but can be tweaked to meet your needs, keep this in mind when editing! PaperMC uses a Restful API for their download system.
